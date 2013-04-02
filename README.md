@@ -1,4 +1,5 @@
 timer
 =====
 
-timer based on hash_map timer_wheel
+Timer based on time_wheel or hash_map
+基于时间轮和哈希表的定时器。
