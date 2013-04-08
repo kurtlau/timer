@@ -1,6 +1,6 @@
 GXX=g++
-SRCS = $(wildcard *.cpp)
-OBJS = $(subst .cpp,.o,$(SRCS))
+SRCS = $(wildcard *.cc)
+OBJS = $(subst .cc,.o,$(SRCS))
 BIN  = timer.exe
 
 CPPFLAGS =-Wall -g -Wno-deprecated
@@ -12,7 +12,7 @@ all: $(BIN)
 $(BIN): $(OBJS)
 	$(GXX) -o$(BIN) $(OBJS) $(LDFLAGS)
 
-$(OBJS): %.o : %.cpp
+$(OBJS): %.o : %.cc
 	$(GXX) -c $(CPPFLAGS) $< -o $@
 
 clean:

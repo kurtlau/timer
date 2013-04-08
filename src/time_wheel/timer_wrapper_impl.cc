@@ -1,24 +1,20 @@
 /**
- *   @file     TimerWrap.cpp
+ *   @file     timer_wrapper_impl.cc
  *   @brief    定时器封装类
- *   @author   kurtliu.JS.IEG.Tencent.
- *   @date     2013-02-01
- *   @note
+ *   @author   kurtlau
+ *   @date     2013-04-08
  */
 
-#include "TimerWrap.h"
+#include "timer_wrapper_impl.h"
 #include <time.h>
-#include <sys/time.h>
 
-int g_iLastCmdID = 0;
-
-int TimerWrap::TimevalInterval(struct timeval& tv1, struct timeval& tv2)
+int TimerWrapperImpl::TimevalInterval(struct timeval& tv1, struct timeval& tv2)
 {
     return (tv1.tv_sec - tv2.tv_sec) * MILLISEC_PER_SEC 
                     + (tv1.tv_usec - tv2.tv_usec) / MICROSEC_PER_MS;
 }
 
-int TimerWrap::UpdateLastTick(unsigned int ticks)
+int TimerWrapperImpl::UpdateLastTick(unsigned int ticks)
 {
     if (0 == ticks)
     {
@@ -26,20 +22,20 @@ int TimerWrap::UpdateLastTick(unsigned int ticks)
     }
 
     struct timeval tv;
-    tv.tv_sec  = ticks * TICK_INTERVAL / MILLISEC_PER_SEC;
-    tv.tv_usec = (ticks * TICK_INTERVAL - tv.tv_sec * MILLISEC_PER_SEC) 
+    tv.tv_sec  = ticks * GetTickInterval() / MILLISEC_PER_SEC;
+    tv.tv_usec = (ticks * GetTickInterval() - tv.tv_sec * MILLISEC_PER_SEC) 
                             * MICROSEC_PER_MS;
 
-    timeradd(&m_lastTick, &tv, &m_lastTick);
+    timeradd(&m_last_tick, &tv, &m_last_tick);
     return 0;
 }
 
-unsigned int TimerWrap::MsToTick(unsigned int ms)
+unsigned int TimerWrapperImpl::MsToTick(unsigned int ms)
 {
-    return (ms - 1)  / TICK_INTERVAL + 1;
+    return (ms - 1)  / GetTickInterval() + 1;
 }
 
-unsigned int TimerWrap::GetTicks(struct timeval& tv1, struct timeval& tv2)
+unsigned int TimerWrapperImpl::GetTicks(struct timeval& tv1, struct timeval& tv2)
 {
     int ms = TimevalInterval(tv1, tv2);
 
@@ -51,10 +47,10 @@ unsigned int TimerWrap::GetTicks(struct timeval& tv1, struct timeval& tv2)
     return MsToTick(ms);
 }
 
-int TimerWrap::InternalAddTimer(CTimerBase *timer)
+int TimerWrapperImpl::InternalAddTimer(TimerBase *timer)
 {
     unsigned int expire = timer->GetExpireTick();
-    unsigned int ticks  = expire - m_tickCount;
+    unsigned int ticks  = expire - m_tick_count;
 
     for (int i = 0; i < WHEEL_NUM; ++i)
     {
@@ -68,26 +64,25 @@ int TimerWrap::InternalAddTimer(CTimerBase *timer)
         expire /= SLOTS_PER_WHEEL;
     }
 
-    LOG_ERR("ticks = %u, out of range\n", ticks);
     return 1;
 }
 
-int TimerWrap::AddTimer(CTimerBase *timer)
+int TimerWrapperImpl::AddTimer(TimerBase *timer)
 {
     unsigned int ticks = MsToTick(timer->GetIntervalTime());
 
-    timer->SetExpireTick(ticks + m_tickCount);
+    timer->SetExpireTick(ticks + m_tick_count);
     InternalAddTimer(timer);
 
     return 0;
 }
 
-int TimerWrap::CascadeTimer(std::list<CTimerBase*>& timerList)
+int TimerWrapperImpl::CascadeTimer(std::list<TimerBase *>& timerList)
 {
-    std::list<CTimerBase*>::iterator iter = timerList.begin();
+    std::list<TimerBase*>::iterator iter = timerList.begin();
     while (iter != timerList.end())
     {
-        CTimerBase* timer = *iter;
+        TimerBase* timer = *iter;
 
         iter = timerList.erase(iter);
         InternalAddTimer(timer);
@@ -96,19 +91,13 @@ int TimerWrap::CascadeTimer(std::list<CTimerBase*>& timerList)
     return 0;
 }
 
-int TimerWrap::RunTimer(std::list<CTimerBase*>& timerList)
+int TimerWrap::RunTimer(std::list<TimerBase *>& timerList)
 {
-    std::list<CTimerBase*>::iterator iter = timerList.begin();
-
-    if (iter != timerList.end())
-    {
-        time_t now = time(NULL);
-        LOG_DBG("=====TICK %u===== at %s", m_tickCount, ctime(&now));
-    }
+    std::list<TimerBase*>::iterator iter = timerList.begin();
 
     while (iter != timerList.end())
     {
-        CTimerBase* timer = *iter;
+        TimerBase* timer = *iter;
         iter = timerList.erase(iter);
 
         timer->PreHandle();
@@ -119,7 +108,7 @@ int TimerWrap::RunTimer(std::list<CTimerBase*>& timerList)
         if (1 == timer->GetCycleFlag())
         {
             unsigned int ticks = MsToTick(timer->GetIntervalTime());
-            timer->SetExpireTick(ticks + m_tickCount);
+            timer->SetExpireTick(ticks + m_tick_count);
             InternalAddTimer(timer);
         }
         else
@@ -135,10 +124,8 @@ int TimerWrap::RunTimer(std::list<CTimerBase*>& timerList)
 
 int TimerWrap::InternalTick()
 {
-    unsigned int slot  = m_tickCount;
+    unsigned int slot  = m_tick_count;
     unsigned int index = 0;
-
-
 
     while (0 ==  slot % SLOTS_PER_WHEEL)
     {
@@ -152,7 +139,7 @@ int TimerWrap::InternalTick()
         CascadeTimer(m_wheels[index][slot % SLOTS_PER_WHEEL]);
     }
 
-    return RunTimer(m_wheels[0][m_tickCount % SLOTS_PER_WHEEL]);
+    return RunTimer(m_wheels[0][m_tick_count % SLOTS_PER_WHEEL]);
 }
 
 int TimerWrap::Tick()
@@ -160,18 +147,18 @@ int TimerWrap::Tick()
     struct timeval now;
     gettimeofday(&now, NULL);
 
-    //第一个tick时初始化m_lastTick
-    if (0 == m_lastTick.tv_sec && 0 == m_lastTick.tv_usec)
+    //第一个tick时初始化m_last_tick
+    if (0 == m_last_tick.tv_sec && 0 == m_last_tick.tv_usec)
     {
-        m_lastTick = now;
+        m_last_tick = now;
         return 0;
     }
 
-    unsigned int ticks = GetTicks(now, m_lastTick);
+    unsigned int ticks = GetTicks(now, m_last_tick);
 
     for (unsigned int i = 0; i < ticks; ++i)
     {
-        m_tickCount++;
+        m_tick_count++;
         InternalTick();
     }
 
