@@ -3,6 +3,7 @@
  *   @brief    定时器封装类
  *   @author   kurtlau
  *   @date     2013-04-08
+ *   @note     基于时间轮的实现
  */
 
 #include "timer_wrapper_impl.h"
@@ -10,7 +11,7 @@
 #include "timer_base.h"
 #include "timer_helper.h"
 
-namespace TimeWheel
+namespace TimeWheelImpl
 {
 
 using TimerHelper::MsToTick;

@@ -1,5 +1,5 @@
 GXX=g++
-SRC_PATH=.:time_wheel
+SRC_PATH=.:time_wheel:hash_map
 SRCS=$(foreach dir,$(subst :, ,$(SRC_PATH)),$(wildcard $(dir)/*.cc))
 #SRCS=$(wildcard *.cc)
 OBJS=$(subst .cc,.o,$(SRCS))

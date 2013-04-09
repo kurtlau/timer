@@ -3,6 +3,7 @@
  *   @brief    定时器封装类
  *   @author   kurtlau
  *   @date     2013-04-08
+ *   @note     基于时间轮的实现
  */
 
 #ifndef __TIMER_WRAPPER_IMPL_H__
@@ -16,7 +17,7 @@
 #define SLOT_MASK        (SLOTS_PER_WHEEL - 1)
 #define WHEEL_NUM        10
 
-namespace TimeWheel
+namespace TimeWheelImpl
 {
 
 class TimerWrapperImpl : public TimerWrapper
