@@ -1,13 +1,20 @@
 GXX=g++
-SRCS = $(wildcard *.cc)
-OBJS = $(subst .cc,.o,$(SRCS))
-BIN  = timer.exe
+SRC_PATH=.:time_wheel
+SRCS=$(foreach dir,$(subst :, ,$(SRC_PATH)),$(wildcard $(dir)/*.cc))
+#SRCS=$(wildcard *.cc)
+OBJS=$(subst .cc,.o,$(SRCS))
+BIN=timer.exe
+LIB=libtimer.a
+RM=@rm -rf
 
-CPPFLAGS =-Wall -g -Wno-deprecated
+CPPFLAGS =-Wall -g -Wno-deprecated -I.
 LDFLAGS  =-g
 
 .PHONY: all clean
-all: $(BIN)
+all: $(OBJS)
+	ar -r $(LIB) $(OBJS)
+
+bin: $(BIN)	
 
 $(BIN): $(OBJS)
 	$(GXX) -o$(BIN) $(OBJS) $(LDFLAGS)
@@ -16,5 +23,6 @@ $(OBJS): %.o : %.cc
 	$(GXX) -c $(CPPFLAGS) $< -o $@
 
 clean:
-	-rm $(BIN)
-	-rm $(OBJS)
+	$(RM) $(BIN)
+	$(RM) $(OBJS)
+	$(RM) $(LIB)

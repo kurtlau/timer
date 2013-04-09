@@ -13,13 +13,13 @@ class TimerBase;
 class TimerWrapper
 {
 public:
-    TimerWrapper(){};
+  TimerWrapper(){};
 
 	virtual ~TimerWrapper(){};
 
 	int Init(unsigned int tick_interval);
 
-    virtual int AddTimer(TimerBase *timer) = 0;
+  virtual int AddTimer(TimerBase *timer) = 0;
 
 	virtual int Tick() = 0;
 	

@@ -5,6 +5,8 @@
  *   @date     2013-04-08
  */
 
+#include "timer_wrapper.h"
+
 int TimerWrapper::Init(unsigned int tick_interval)
 {
 	m_tick_interval = tick_interval;

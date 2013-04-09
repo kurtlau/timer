@@ -12,29 +12,34 @@
 class TimerBase
 {
 public:
-    TimerBase(): m_expire(0), m_process_time(){};
+  TimerBase(): m_expire(0), m_process_time(){};
 
-    virtual ~TimerBase(){};
+  virtual ~TimerBase(){};
 
-    virtual int Run() = 0;
+  virtual int Run() = 0;
 
-    virtual int PreRun() = 0;
+  virtual int PreRun() = 0;
 
-    virtual int PostRun() = 0;
+  virtual int PostRun() = 0;
 
-	TimerBase& operator=(const TimerBase &timer);
+  TimerBase& operator=(const TimerBase &timer);
 
-    void SetProcessTime(const struct timeval &tv){ m_process_time = tv;};
+  void SetProcessTime(const struct timeval &tv){ m_process_time = tv;};
 
-    const struct timeval &GetProcessTime()const {return m_process_time;};
+  const struct timeval &GetProcessTime()const {return m_process_time;};
 
-    void SetExpireTick(const unsigned int expire){m_expire = expire;};
+  void SetExpireTick(const unsigned int expire){m_expire = expire;};
 
-    unsigned int GetExpireTick()const {return m_expire;};
+  unsigned int GetExpireTick()const {return m_expire;};
+
+  void SetIntervalTime(unsigned int interval){m_interval = interval;};
+  
+  unsigned int GetIntervalTime(){return m_interval;};
 
 protected:
-    unsigned int   m_expire;         // 相对于TimerWrap的Init以后的tick数
-    struct timeval m_process_time;   // 处理的时间。
+  unsigned int   m_expire;         // 相对于TimerWrap的Init以后的tick数
+  unsigned int   m_interval;		 // 多久以后到时
+  struct timeval m_process_time;   // 处理的时间。
 };
 
 #endif

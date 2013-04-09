@@ -12,32 +12,26 @@
 #include <list>
 #include "timer_wrapper.h"
 
-#define MILLISEC_PER_SEC 1000 //1√Î”–1000∫¡√Î
-#define MICROSEC_PER_MS  1000 //1∫¡√Î”–1000Œ¢√Î
-
 #define SLOTS_PER_WHEEL  10
 #define SLOT_MASK        (SLOTS_PER_WHEEL - 1)
 #define WHEEL_NUM        10
 
+namespace TimeWheel
+{
+
 class TimerWrapperImpl : public TimerWrapper
 {
 public:
-    TimerWrapperImpl() : m_tick_count(0){};
-	
-    virtual ~TimerWrapperImpl(){};
+  TimerWrapperImpl() : m_tick_count(0){};
 
-    virtual int AddTimer(TimerBase *timer);
-	
-    virtual int Tick();
+  virtual ~TimerWrapperImpl(){};
+
+  virtual int AddTimer(TimerBase *timer);
+
+  virtual int Tick();
 	
 private:
-    int TimevalInterval(struct timeval& tv1, struct timeval& tv2);
-	
-    int UpdateLastTick(unsigned int ticks);
-    
-	unsigned int MsToTick(unsigned int ms);
-    
-	unsigned int GetTicks(struct timeval &tv1, struct timeval &tv2);
+  int UpdateLastTick(unsigned int ticks);
     
 	int RunTimer(std::list<TimerBase *>& timerList);
     
@@ -47,13 +41,13 @@ private:
     
 	int InternalAddTimer(TimerBase *timer);
 
-    unsigned int           m_tick_count;
-	
-    struct timeval         m_last_tick;
+  unsigned int           m_tick_count;
+
+  struct timeval         m_last_tick;
     
 	struct timeval         m_init_time;
     
 	std::list<TimerBase *> m_wheels[WHEEL_NUM][SLOTS_PER_WHEEL];
 };
-
+}
 #endif

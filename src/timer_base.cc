@@ -9,11 +9,11 @@
 
 TimerBase & TimerBase::operator= (const TimerBase &timer)
 {
-    if (this != &timer)
-    {
-        this->m_expire = timer.m_expire;
-        this->m_process_time = timer.m_process_time;
-    }
+  if (this != &timer)
+  {
+    this->m_expire = timer.m_expire;
+    this->m_process_time = timer.m_process_time;
+  }
 
-    return *this;
+  return *this;
 }
