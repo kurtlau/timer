@@ -56,11 +56,6 @@ int TimerWrapperImpl::RunTimer()
   TimerList& list = m_timerList[HashCode(m_tickCount)];
   TimerList::iterator iter = list.begin();
 
-  if (iter != list.end())
-  {
-    time_t now = time(NULL);
-  }
-
   while(iter != list.end())
   {
     TimerBase *timer = *iter;
